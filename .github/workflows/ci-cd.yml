@@ -29,7 +29,7 @@ jobs:
       run: |
         # Assuming no Maven; use javac for simplicity
         mkdir -p classes
-        javac -d classes *.java  # Compile all .java files
+        javac -cp "lib/*" -d classes myApp.java MathUtil.java MathUtilTest.java  # Compile all .java files
         echo "Build successful!"
 
     # Step 4: Run tests (JUnit)
