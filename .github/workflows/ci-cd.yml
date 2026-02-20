@@ -1,5 +1,4 @@
 name: CI/CD Pipeline for Java App
-
 on:
   push:
     branches: [ main ]
@@ -20,26 +19,35 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Compile Java files
+    - name: Download JUnit Dependencies
+      run: |
+        mkdir -p lib
+        curl -L -o lib/junit-api.jar https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar
+        curl -L -o lib/junit-engine.jar https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar
+        curl -L -o lib/platform.jar https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.0/junit-platform-console-standalone-1.10.0.jar
+        curl -L -o lib/hamcrest.jar https://repo1.maven.org/maven2/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar
+        ls -l lib/ # Verify downloads
+        echo "JUnit dependencies downloaded"
+
+    - name: Compile
       run: |
         mkdir -p classes
-        javac -d classes *.java
-        echo "Compilation successful!"
+        javac -cp "lib/junit-api.jar:lib/junit-engine.jar:lib/platform.jar:lib/hamcrest.jar" -d classes *.java
+        ls -l classes/ # Verify compilation
+        echo "Build successful!"
 
-    - name: Run JUnit Tests
+
+    - name: Run Tests
       run: |
-        curl -L -o junit-platform-console-standalone.jar \
-        https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.0/junit-platform-console-standalone-1.10.0.jar
+        java -cp "classes:lib/junit-api.jar:lib/junit-engine.jar:lib/platform.jar:lib/hamcrest.jar" org.junit.platform.console.ConsoleLauncher --select-class MathUtilsTest
+      continue-on-error: false
 
-        java -jar junit-platform-console-standalone.jar \
-          --class-path classes \
-          --scan-class-path
 
-    - name: Create JAR Artifact
+    - name: Create JAR
       run: |
         cd classes
         jar cf ../myapp.jar *
-        echo "JAR created!"
+        echo "JAR created"
 
     - name: Upload JAR
       uses: actions/upload-artifact@v4
@@ -47,7 +55,8 @@ jobs:
         name: myapp-jar
         path: myapp.jar
 
-    - name: Simulate Deployment
+    - name: Simulate Deploy
+      if: github.ref == 'refs/heads/main'
       run: |
         echo "Deploying to staging..."
-        echo "Deployment successful!"
+
