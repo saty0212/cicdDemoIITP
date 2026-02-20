@@ -39,7 +39,7 @@ jobs:
 
     - name: Run Tests
       run: |
-        java -cp "classes:lib/junit-api.jar:lib/junit-engine.jar:lib/platform.jar:lib/hamcrest.jar" org.junit.platform.console.ConsoleLauncher --select-class MathUtilsTest
+        java -cp "classes:lib/junit-api.jar:lib/junit-engine.jar:lib/platform.jar:lib/hamcrest.jar" org.junit.platform.console.ConsoleLauncher --select-class MathUtilTest
       continue-on-error: false
 
 
